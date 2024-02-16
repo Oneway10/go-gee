@@ -10,11 +10,12 @@ type H map[string]any
 
 type Context struct {
 	Writer http.ResponseWriter
-	Req *http.Request
+	Req    *http.Request
 
 	// 请求信息
-	Path string
+	Path   string
 	Method string
+	Params map[string]string
 
 	// 相应信息
 	StatusCode int
@@ -23,10 +24,15 @@ type Context struct {
 func newContext(w http.ResponseWriter, r *http.Request) *Context {
 	return &Context{
 		Writer: w,
-		Req: r,
-		Path: r.URL.Path,
+		Req:    r,
+		Path:   r.URL.Path,
 		Method: r.Method,
 	}
+}
+
+func (c *Context) Param(key string) string {
+	value, _ := c.Params[key]
+	return value
 }
 
 func (c *Context) PostForm(key string) string {
