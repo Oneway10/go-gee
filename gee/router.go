@@ -20,8 +20,8 @@ func newRouter() *router {
 // 解析, 并只允许一个 * 出现
 func parsePattern(pattern string) []string {
 	vs := strings.Split(pattern, "/")
-
 	parts := make([]string, 0)
+
 	for _, item := range vs {
 		if item != "" {
 			parts = append(parts, item)
@@ -51,8 +51,8 @@ func (r *router) addRoute(method string, pattern string, handler HandlerFunc) {
 func (r *router) getRoute(method string, path string) (*node, map[string]string) {
 	searchParts := parsePattern(path)
 	params := make(map[string]string)
+	
 	root, ok := r.roots[method]
-
 	if !ok {
 		return nil, nil
 	}
