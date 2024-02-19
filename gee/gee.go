@@ -40,6 +40,12 @@ func New() *Engine {
 	return engine
 }
 
+func Default() *Engine {
+	engine := New()
+	engine.Use(Logger(), Recovery())
+	return engine
+}
+
 // 将中间件添加到组
 func (group *RouterGroup) Use(middleware ...HandlerFunc) {
 	group.middlewares = append(group.middlewares, middleware...)
