@@ -3,6 +3,7 @@ package gee
 import (
 	"log"
 	"net/http"
+	"strings"
 )
 
 type HandlerFunc func(*Context)
@@ -10,7 +11,6 @@ type HandlerFunc func(*Context)
 type RouterGroup struct {
 	prefix      string
 	middlewares []HandlerFunc // 支持中间件
-	parent      *RouterGroup  // 支持嵌套
 	engine      *Engine       // 所有组共享一个 engine
 }
 
@@ -34,12 +34,16 @@ func New() *Engine {
 	return engine
 }
 
+// 将中间件添加到组
+func (group *RouterGroup) Use(middleware ...HandlerFunc) {
+	group.middlewares = append(group.middlewares, middleware...)
+}
+
 // 新建RouterGroup, 所有 group 共享一个 Engine 实例
 func (group *RouterGroup) Group(prefix string) *RouterGroup {
 	engine := group.engine
 	newGroup := &RouterGroup{
 		prefix: group.prefix + prefix,
-		parent: group,
 		engine: engine,
 	}
 
@@ -64,7 +68,15 @@ func (group *RouterGroup) POST(pattern string, handler HandlerFunc) {
 }
 
 func (engine *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var middlewares []HandlerFunc
+	for _, group := range engine.groups {
+		if strings.HasPrefix(r.URL.Path, group.prefix) {
+			middlewares = append(middlewares, group.middlewares...)
+		}
+	}
+	
 	c := newContext(w, r)
+	c.handlers = middlewares
 	engine.router.handle(c)
 }
 
